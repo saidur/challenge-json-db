@@ -7,10 +7,17 @@ const middleware = require('./middleware')
 const PORT = process.env.PORT || 1337
 
 const app = express()
-
+app.use(bodyParser.urlencoded({
+  extended: true
+}))
+// parse application/json
 app.use(bodyParser.json())
 
 app.get('/health', api.getHealth)
+
+app.put('/:studentId/:paramName/*', api.createStudent)
+app.get('/:studentId/:paramName/*', api.getStudent)
+app.delete('/:studentId/:paramName/*', api.deleteStudent)
 
 app.use(middleware.handleError)
 app.use(middleware.notFound)
