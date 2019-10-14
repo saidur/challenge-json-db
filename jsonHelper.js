@@ -13,7 +13,8 @@ module.exports = {
   updateObjects,
   getRequestQuery,
   deletePropertyPath,
-  ensureDirectoryExistence
+  ensureDirectoryExistence,
+  getObjects
 }
 
 function ensureDirectoryExistence (filePath) {
@@ -97,13 +98,97 @@ function getRequestQuery (req) {
   return JSON.parse(JSON.stringify(result))
 }
 
-function deletePropertyPath (jsonObj, keys) {
-  if (!jsonObj || !keys) {
+function deletePropertyPath (obj, keys) {
+  if (!obj || !keys) {
     return
   }
 
-  let prop = keys.pop()
-  let parent = keys.reduce((obj, key) => obj[key], jsonObj)
-  delete parent[prop]
-  return jsonObj
+  const _obj = JSON.parse(JSON.stringify(obj))
+
+  keys.reduce((acc, key, index) => {
+    if (index === keys.length - 1) {
+      delete acc[key]
+      return true
+    }
+    return acc[key]
+  }, _obj)
+
+  return _obj
 }
+
+function getObjects2 (obj, keys, retval, retkey) {
+  obj = obj || {}
+  retval = retval || []
+  retkey = retkey || []
+  let length = keys.length
+  let targetKey = keys.shift()
+  let finalRes = []
+
+  if (length > 0) {
+    for (let prop in obj) {
+      if (obj.hasOwnProperty(prop)) {
+        if (prop === targetKey) {
+          retval.push(obj[prop])
+          retkey.push(prop)
+        }
+
+        if (obj[prop] instanceof Object || obj[prop] instanceof Array) {
+          getObjects(obj[prop], keys, retval, retkey)
+        }
+      }
+    }
+  }
+
+  finalRes['keys'] = retkey
+  finalRes['value'] = retval
+  return finalRes
+}
+
+function getObjects (obj, keys) {
+
+  if (!obj || !keys) {
+    return
+  }
+  obj = obj || {}
+  const _obj = JSON.parse(JSON.stringify(obj))
+  let array_keys =[]
+  let objProperty=[]
+
+  keys.reduce((acc, key, index) => {
+    
+    array_keys.push (key)
+    //console.log ('acc:' + JSON.stringify(acc) )
+    //console.log ('key:' + key )
+    //console.log ('obj:'+JSON.stringify(_obj))
+    //console.log ("prop:"+Object.keys(_obj))
+    //console.log (array_keys)
+    if (acc.hasOwnProperty(key)) {
+      if (acc[key] instanceof Object || acc[key] instanceof Array) {
+        objProperty = setObjects(array_keys,acc[key])
+      }
+    }
+    
+    //console.log (JSON.stringify(objProperty))
+   
+
+
+    return acc[key]
+  }, _obj)
+
+  return objProperty
+
+}
+
+var getkeys = function(obj, prefix){
+  var keys = Object.keys(obj);
+  prefix = prefix ? prefix + '.' : '';
+  return keys.reduce(function(result, key){
+      if(isobject(obj[key])){
+          result = result.concat(getkeys(obj[key], prefix + key));
+      }else{
+          result.push(prefix + key);
+      }
+      return result;
+  }, []);
+};
+

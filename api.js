@@ -32,6 +32,7 @@ async function createStudent (req, res, next) {
 
   jsonHelper.ensureDirectoryExistence(fileName)
   var exists = fs.existsSync(fileName)
+  
   try {
     if (exists === false) {
       obj = await jsonHelper.setObjects(requestData, queryData)
@@ -72,8 +73,11 @@ async function getStudent (req, res) {
   if (exists) {
     contents = fs.readFileSync(studentFile)
     obj = JSON.parse(contents)
-    try {
-      data = jsonHelper.getNestedObject(obj, requestData)
+    try {    
+      
+      data = jsonHelper.getObjects(obj,requestData)
+      // console.log (JSON.stringify(data))
+
     } catch (err) {
       console.log(err)
     }
@@ -102,9 +106,9 @@ async function deleteStudent (req, res) {
     contents = fs.readFileSync(studentFile)
     obj = JSON.parse(contents)
     // var newObj = jsonHelper.removeKeys(obj, requestData)
-    console.log('delete call.. ')
     var newObj = jsonHelper.deletePropertyPath(obj, requestData)
     data = JSON.stringify(newObj)
+    console.log (JSON.stringify(data))
     await jsonHelper.writeFile(studentFile, data, () => {
       res.status(200).json({ success: true, msg: data })
     })
